@@ -241,7 +241,7 @@ async function run() {
     app.get("/doctor/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
-      const isDoctor = user.role === "doctor";
+      const isDoctor = user.role === "doctor" || user.user;
       res.send({ doctor: isDoctor });
     });
 
