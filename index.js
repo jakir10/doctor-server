@@ -8,7 +8,6 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 var nodemailer = require("nodemailer");
 const mg = require("nodemailer-mailgun-transport");
-// var sgTransport = require("nodemailer-sendgrid-transport");
 const stripe = require("stripe")(process.env.STRIPE_SECRETE_KEY);
 
 const app = express();
@@ -43,48 +42,8 @@ function verifyJWT(req, res, next) {
   });
 }
 
-// const emailSendingOptions = {
-//   auth: {
-//     api_key: process.env.EMAIL_SENDING_KEY,
-//   },
-// };
-
-// const emailClient = nodemailer.createTransport(
-//   sgTransport(emailSendingOptions)
-// );
-
-// // send Email to patient for appointment confirmation
-// function sendingAppointmentEmail(booking) {
-//   const { patient, patientName, treatment, date, slot } = booking;
-
-//   var email = {
-//     from: process.env.EMAIL_SENDER,
-//     to: patient,
-//     subject: `Your Appointment for ${treatment} is on ${date} at ${slot} is Confirmed!!`,
-//     text: `Your Appointment for ${treatment} is on ${date} at ${slot} is Confirmed!!`,
-//     html: `
-//         <div>
-//         <p>Hello Dear ${patientName},</p>
-//         <h3>Your Appointment for ${treatment} is confirmed</h3>
-//         <p>You will meet our Doctor on ${date} at ${slot} </p>
-//         <p>Our Address</p>
-//         <p>Dhaka,Mirpur 1212</p>
-//         </div>
-//         `,
-//   };
-//   console.log(patient, process.env.EMAIL_SENDER);
-//   emailClient.sendMail(email, function (err, info) {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       console.log("Message sent: ", info);
-//     }
-//   });
-// }
-
 // Mailgun Test
 function sendBookingEmail(booking) {
-  // const { email, treatment, date, slot } = booking;
   const { patient, patientName, treatment, date, slot } = booking;
 
   const auth = {
@@ -204,20 +163,6 @@ async function run() {
       res.send(users);
     });
 
-    // get single user for profile
-    // app.get("/user/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: ObjectId(id) };
-    //   const user = await userCollection.findOne(query);
-    //   res.send(user);
-    // });
-    // user profile image
-    // app.post("/user/profile", (req, res) => {
-    //   const imageURL = req.body.image_url;
-    //   // Save the imageURL to the user's profile in the database
-    //   // ...
-    //   res.send({ message: "Image URL saved successfully" });
-    // });
     app.post("/profile", async (req, res) => {
       const profile = req.body;
       const result = await profileCollection.insertOne(profile);
@@ -256,18 +201,7 @@ async function run() {
       res.send(result);
     });
 
-    // make a user doctor
-    // app.put("/user/doctor/:email", verifyJWT, verifyAdmin, async (req, res) => {
-    //   const email = req.params.email;
-    //   const filter = { email: email };
-    //   const updateDoc = {
-    //     $set: { role: "doctor" },
-    //   };
-    //   const result = await userCollection.updateOne(filter, updateDoc);
-    //   res.send(result);
-    // });
-
-    // regester as doctor role
+    // register as doctor role
     app.post("/register-doctor", async (req, res) => {
       const doctor = req.body;
       const result = await doctorCollection.insertOne(doctor);
@@ -370,40 +304,6 @@ async function run() {
       res.send(result);
     });
 
-    // app.get('/available', async (req, res) => {
-    //     const date = req.query.date;
-
-    //     const treatments = await treatmentCollection.find().toArray();
-    //     // get the bookings of the provided date
-    //     const query = { date: date };
-    //     const bookings = await bookingCollection.find(query).toArray();
-
-    //     // code carefully :D
-    //     treatments.forEach(treatment => {
-    //         const treatmentBookings = bookings.filter(book => book.treatment === treatment.name);
-    //         const bookedSlots = treatmentBookings.map(book => book.slot);
-    //         const available = treatment.slots.filter(slot => !bookedSlots.includes(slot));
-    //         treatment.slots = available;
-    //     })
-    //     res.send(treatments);
-    // });
-    // app.get('/available', async (req, res) => {
-    //     const date = req.query.date;
-
-    //     const services = await serviceCollection.find().toArray();
-    //     // get the bookings of the provided date
-    //     const query = { date: date };
-    //     const bookings = await bookingCollection.find(query).toArray();
-
-    //     // code carefully :D
-    //     services.forEach(service => {
-    //         const serviceBookings = bookings.filter(book => book.treatment === service.name);
-    //         const bookedSlots = serviceBookings.map(book => book.slot);
-    //         const available = service.slots.filter(slot => !bookedSlots.includes(slot));
-    //         service.slots = available;
-    //     });
-    //     res.send(services);
-    // });
     app.get("/available", async (req, res) => {
       const date = req.query.date;
 
@@ -460,14 +360,6 @@ async function run() {
       }
     });
 
-    // app.get('/booking', async (req, res) => {
-    //     const patient = req.query.patient;
-
-    //     const query = { patient: patient };
-    //     const bookings = await bookingCollection.find(query).toArray();
-    //     return res.send(bookings);
-    // });
-
     app.get("/booking/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -475,22 +367,6 @@ async function run() {
       res.send(booking);
     });
 
-    // all bookings patients
-    // app.get("/bookings", async (req, res) => {
-    //   const limit = Number(req.query.limit);
-    //   const pageNumber = Number(req.query.pageNumber);
-    //   console.log(limit, pageNumber);
-    //   const doctor = req.query.doctor;
-    //   const query = { doctor: doctor };
-    //   const cursor = bookingCollection.find(query);
-    //   const bookings = await cursor
-    //     .skip(limit * pageNumber)
-    //     .limit(limit)
-    //     .toArray();
-
-    //   // const count = await bookingCollection.estimatedDocumentCount();
-    //   res.send(bookings);
-    // });
     app.get("/bookings", async (req, res) => {
       const doctor = req.query.doctor;
       const query = { doctor: doctor };
